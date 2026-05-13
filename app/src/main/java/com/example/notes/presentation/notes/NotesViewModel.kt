@@ -24,16 +24,28 @@ class NotesViewModel(
     val selectedTag: StateFlow<String?> = _selectedTag.asStateFlow()
 
     private val _notes = MutableStateFlow<List<Note>>(emptyList())
-    val notes: StateFlow<List<Note>> = combine(_notes, _searchQuery, _selectedTag) { notes, query, tag ->
+    val notes: StateFlow<List<Note>> = combine(
+        _notes, _searchQuery, _selectedTag
+    ) { notes, query, tag ->
         notes.filter { note ->
-            (note.title.contains(query, ignoreCase = true) || note.content.contains(query, ignoreCase = true)) &&
-            (tag == null || note.tags.contains(tag))
+            (note.title.contains(query, ignoreCase = true) || note.content.contains(
+                query, ignoreCase = true
+            )) &&
+                    (tag == null || note.tags.contains(tag))
         }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    }.stateIn(
+        viewModelScope, SharingStarted.WhileSubscribed(
+            5000
+        ), emptyList()
+    )
 
     val allTags: StateFlow<List<String>> = _notes.map { notes ->
         notes.flatMap { it.tags }.distinct().sorted()
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    }.stateIn(
+        viewModelScope, SharingStarted.WhileSubscribed(
+            5000
+        ), emptyList()
+    )
 
     init {
         repository.getNotes().onEach { notes ->
@@ -68,7 +80,8 @@ class NotesViewModel(
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
-                val application = (this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as NoteApplication)
+                val application =
+                    (this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as NoteApplication)
                 NotesViewModel(application.repository, application)
             }
         }

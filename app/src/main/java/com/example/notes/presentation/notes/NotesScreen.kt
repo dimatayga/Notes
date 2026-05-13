@@ -21,13 +21,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.notes.domain.model.Note
-
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.notes.ui.theme.NotesTheme
 import coil.compose.AsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,6 +55,69 @@ fun NotesScreen(
     )
 }
 
+@Composable
+private fun DeleteDialog(
+    title: String,
+    text: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = { Text(text) },
+        confirmButton = { TextButton(onClick = onConfirm) { Text("Удалить") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Отмена") } }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun NotesTopBar(
+    isSearchActive: Boolean,
+    searchQuery: String,
+    onSearchToggle: (Boolean) -> Unit,
+    onSearchQueryChanged: (String) -> Unit,
+    onDeleteAllClick: () -> Unit,
+    onSettingsClick: () -> Unit,
+    hasNotes: Boolean
+) {
+    if (isSearchActive) {
+        TopAppBar(
+            title = {
+                TextField(
+                    value = searchQuery,
+                    onValueChange = onSearchQueryChanged,
+                    placeholder = { Text("Найти...") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent
+                    )
+                )
+            },
+            navigationIcon = {
+                IconButton(onClick = {
+                    onSearchToggle(false)
+                    onSearchQueryChanged("")
+                }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back") }
+            }
+        )
+    } else {
+        TopAppBar(
+            title = { Text("Заметки") },
+            actions = {
+                IconButton(onClick = { onSearchToggle(true) }) { Icon(Icons.Default.Search, "Search") }
+                if (hasNotes) {
+                    IconButton(onClick = onDeleteAllClick) { Icon(Icons.Default.DeleteSweep, "Delete all") }
+                }
+                IconButton(onClick = onSettingsClick) { Icon(Icons.Default.Settings, "Settings") }
+            }
+        )
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun NotesContent(
@@ -77,111 +137,47 @@ private fun NotesContent(
     var showDeleteAllDialog by remember { mutableStateOf(false) }
     var isSearchActive by remember { mutableStateOf(false) }
 
-    if (noteToDelete != null) {
-        AlertDialog(
-            onDismissRequest = { noteToDelete = null },
-            title = { Text("Удалить заметку") },
-            text = { Text("Вы уверены, что хотите удалить эту заметку?") },
-            confirmButton = {
-                TextButton(onClick = {
-                    noteToDelete?.let { onDeleteNote(it) }
-                    noteToDelete = null
-                }) {
-                    Text("Удалить")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { noteToDelete = null }) {
-                    Text("Отмена")
-                }
-            }
+    noteToDelete?.let { note ->
+        DeleteDialog(
+            title = "Удалить заметку",
+            text = "Вы уверены, что хотите удалить эту заметку?",
+            onConfirm = { onDeleteNote(note); noteToDelete = null },
+            onDismiss = { noteToDelete = null }
         )
     }
 
     if (showDeleteAllDialog) {
-        AlertDialog(
-            onDismissRequest = { showDeleteAllDialog = false },
-            title = { Text("Удалить все заметки") },
-            text = { Text("Вы уверены, что хотите удалить все заметки?") },
-            confirmButton = {
-                TextButton(onClick = {
-                    onDeleteAllNotes()
-                    showDeleteAllDialog = false
-                }) {
-                    Text("Удалить все")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDeleteAllDialog = false }) {
-                    Text("Отмена")
-                }
-            }
+        DeleteDialog(
+            title = "Удалить все заметки",
+            text = "Вы уверены, что хотите удалить все заметки?",
+            onConfirm = { onDeleteAllNotes(); showDeleteAllDialog = false },
+            onDismiss = { showDeleteAllDialog = false }
         )
     }
 
     Scaffold(
         topBar = {
-            if (isSearchActive) {
-                TopAppBar(
-                    title = {
-                        TextField(
-                            value = searchQuery,
-                            onValueChange = onSearchQueryChanged,
-                            placeholder = { Text("Найти...") },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true,
-                            colors = TextFieldDefaults.colors(
-                                focusedContainerColor = Color.Transparent,
-                                unfocusedContainerColor = Color.Transparent
-                            )
-                        )
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = {
-                            isSearchActive = false
-                            onSearchQueryChanged("")
-                        }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                        }
-                    }
-                )
-            } else {
-                TopAppBar(
-                    title = { Text("Заметки") },
-                    actions = {
-                        IconButton(onClick = { isSearchActive = true }) {
-                            Icon(Icons.Default.Search, contentDescription = "Search")
-                        }
-                        if (notes.isNotEmpty()) {
-                            IconButton(onClick = { showDeleteAllDialog = true }) {
-                                Icon(
-                                    imageVector = Icons.Default.DeleteSweep,
-                                    contentDescription = "Delete all notes"
-                                )
-                            }
-                        }
-                        IconButton(onClick = onSettingsClick) {
-                            Icon(Icons.Default.Settings, contentDescription = "Settings")
-                        }
-                    }
-                )
-            }
+            NotesTopBar(
+                isSearchActive = isSearchActive,
+                searchQuery = searchQuery,
+                onSearchToggle = { isSearchActive = it },
+                onSearchQueryChanged = onSearchQueryChanged,
+                onDeleteAllClick = { showDeleteAllDialog = true },
+                onSettingsClick = onSettingsClick,
+                hasNotes = notes.isNotEmpty()
+            )
         },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onAddNoteClick,
                 containerColor = MaterialTheme.colorScheme.primary
-            ) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = "Add note")
-            }
+            ) { Icon(Icons.Default.Add, "Add note") }
         }
     ) { padding ->
-        Column(modifier = Modifier.padding(padding)) {
+        Column(Modifier.padding(padding)) {
             if (allTags.isNotEmpty()) {
                 LazyRow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp),
+                    Modifier.fillMaxWidth().padding(8.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     item {
@@ -202,24 +198,13 @@ private fun NotesContent(
             }
 
             if (notes.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = if (searchQuery.isEmpty()
-                        ) "Пока нет заметок. Добавьте свою первую заметку!"
-                        else "Никаких заметок найдено не было."
-                    )
+                Box(Modifier.fillMaxSize(), Alignment.Center) {
+                    Text(if (searchQuery.isEmpty()) "Пока нет заметок. Добавьте свою первую заметку!" else "Никаких заметок найдено не было.")
                 }
             } else {
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                LazyColumn(Modifier.fillMaxSize()) {
                     items(notes) { note ->
-                        NoteItem(
-                            note = note,
-                            onClick = { onNoteClick(note) },
-                            onDeleteClick = { noteToDelete = note }
-                        )
+                        NoteItem(note, { onNoteClick(note) }, { noteToDelete = note })
                     }
                 }
             }
@@ -309,40 +294,5 @@ fun NoteItem(
                 }
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun NotesScreenPreview() {
-    NotesTheme {
-        NotesContent(
-            notes = listOf(
-                Note(
-                    id = 1,
-                    title = "First Note",
-                    content = "Content of the first note",
-                    timestamp = System.currentTimeMillis(),
-                    tags = listOf("Personal", "Work")
-                ),
-                Note(
-                    id = 2,
-                    title = "Second Note",
-                    content = "Content of the second note",
-                    timestamp = System.currentTimeMillis(),
-                    tags = listOf("Study")
-                )
-            ),
-            searchQuery = "",
-            allTags = listOf("Personal", "Work", "Study"),
-            selectedTag = null,
-            onAddNoteClick = {},
-            onNoteClick = {},
-            onSettingsClick = {},
-            onSearchQueryChanged = {},
-            onTagSelected = {},
-            onDeleteNote = {},
-            onDeleteAllNotes = {}
-        )
     }
 }
