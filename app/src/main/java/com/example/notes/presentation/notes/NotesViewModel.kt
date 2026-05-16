@@ -81,7 +81,9 @@ class NotesViewModel(
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val application =
-                    (this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as NoteApplication)
+                    (this
+                        [ViewModelProvider.AndroidViewModelFactory
+                        .APPLICATION_KEY] as NoteApplication)
                 NotesViewModel(application.repository, application)
             }
         }

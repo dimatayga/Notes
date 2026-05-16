@@ -108,9 +108,19 @@ private fun NotesTopBar(
         TopAppBar(
             title = { Text("Заметки") },
             actions = {
-                IconButton(onClick = { onSearchToggle(true) }) { Icon(Icons.Default.Search, "Search") }
+                IconButton(onClick = { onSearchToggle(true) }) {
+                    Icon(
+                        Icons.Default.Search,
+                        "Search"
+                    )
+                }
                 if (hasNotes) {
-                    IconButton(onClick = onDeleteAllClick) { Icon(Icons.Default.DeleteSweep, "Delete all") }
+                    IconButton(onClick = onDeleteAllClick) {
+                        Icon(
+                            Icons.Default.DeleteSweep,
+                            "Delete all"
+                        )
+                    }
                 }
                 IconButton(onClick = onSettingsClick) { Icon(Icons.Default.Settings, "Settings") }
             }
@@ -177,7 +187,9 @@ private fun NotesContent(
         Column(Modifier.padding(padding)) {
             if (allTags.isNotEmpty()) {
                 LazyRow(
-                    Modifier.fillMaxWidth().padding(8.dp),
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     item {
@@ -199,12 +211,24 @@ private fun NotesContent(
 
             if (notes.isEmpty()) {
                 Box(Modifier.fillMaxSize(), Alignment.Center) {
-                    Text(if (searchQuery.isEmpty()) "Пока нет заметок. Добавьте свою первую заметку!" else "Никаких заметок найдено не было.")
+                    Text(
+                        if (searchQuery.isEmpty()) "Заметок нет...   Добавьте!"
+                        else "Ничего не найдено"
+                    )
                 }
             } else {
                 LazyColumn(Modifier.fillMaxSize()) {
-                    items(notes) { note ->
-                        NoteItem(note, { onNoteClick(note) }, { noteToDelete = note })
+                    items(
+                        items = notes,
+                        key = { note -> note.content}
+                    ) { note ->
+//                        NoteItem(note, { onNoteClick(note) }, { noteToDelete = note })
+                        NoteItem(
+                            modifier = Modifier.animateItem(),
+                            note = note,
+                            onClick = { onNoteClick(note) },
+                            onDeleteClick = { noteToDelete = note }
+                        )
                     }
                 }
             }
@@ -214,6 +238,7 @@ private fun NotesContent(
 
 @Composable
 fun NoteItem(
+    modifier: Modifier = Modifier,
     note: Note,
     onClick: () -> Unit,
     onDeleteClick: () -> Unit
@@ -221,7 +246,7 @@ fun NoteItem(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
+            .padding(horizontal = 8.dp, vertical = 4.dp)
             .clickable { onClick() },
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
