@@ -13,15 +13,15 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 
 class PreferencesManager(private val context: Context) {
 
-    private val DARK_MODE_KEY = booleanPreferencesKey("dark_mode")
+    private val darkModeKey = booleanPreferencesKey("dark_mode")
 
     val isDarkMode: Flow<Boolean?> = context.dataStore.data.map { preferences ->
-        preferences[DARK_MODE_KEY]
+        preferences[darkModeKey]
     }
 
     suspend fun setDarkMode(enabled: Boolean) {
         context.dataStore.edit { preferences ->
-            preferences[DARK_MODE_KEY] = enabled
+            preferences[darkModeKey] = enabled
         }
     }
 }
