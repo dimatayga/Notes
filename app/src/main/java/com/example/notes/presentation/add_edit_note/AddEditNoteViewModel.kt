@@ -5,20 +5,19 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
-import com.example.notes.NoteApplication
 import com.example.notes.domain.model.Note
 import com.example.notes.domain.model.NoteDraft
 import com.example.notes.domain.repository.NoteRepository
 import com.example.notes.util.ReminderScheduler
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class AddEditNoteViewModel(
+@HiltViewModel
+class AddEditNoteViewModel @Inject constructor(
     private val repository: NoteRepository,
     private val application: Application,
     savedStateHandle: SavedStateHandle
@@ -39,7 +38,8 @@ class AddEditNoteViewModel(
     private val _reminderTime = mutableStateOf<Long?>(null)
     val reminderTime: State<Long?> = _reminderTime
 
-    private var currentNoteId: Int? = null
+    private var _currentNoteId: Int? = null
+    val currentNoteId: Int? get() = _currentNoteId
 
     private val _eventFlow = MutableSharedFlow<UiEvent>()
     val eventFlow = _eventFlow.asSharedFlow()
@@ -49,7 +49,7 @@ class AddEditNoteViewModel(
             if (noteId != -1) {
                 viewModelScope.launch {
                     repository.getNoteById(noteId)?.also { note ->
-                        currentNoteId = note.id
+                        _currentNoteId = note.id
                         _noteTitle.value = note.title
                         _noteContent.value = note.content
                         _noteTags.value = note.tags
@@ -141,17 +141,5 @@ class AddEditNoteViewModel(
 
     sealed class UiEvent {
         object SaveNote: UiEvent()
-    }
-
-    companion object {
-        fun provideFactory(
-            repository: NoteRepository,
-            application: Application,
-            savedStateHandle: SavedStateHandle
-        ): ViewModelProvider.Factory = viewModelFactory {
-            initializer {
-                AddEditNoteViewModel(repository, application, savedStateHandle)
-            }
-        }
     }
 }

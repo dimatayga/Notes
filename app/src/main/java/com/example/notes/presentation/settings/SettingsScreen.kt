@@ -10,13 +10,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     onBackClick: () -> Unit,
-    viewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory)
+    viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val isDarkMode by viewModel.isDarkMode.collectAsState()
 

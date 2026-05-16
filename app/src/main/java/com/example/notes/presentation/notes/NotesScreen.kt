@@ -19,13 +19,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.notes.domain.model.Note
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,7 +33,7 @@ fun NotesScreen(
     onAddNoteClick: () -> Unit,
     onNoteClick: (Note) -> Unit,
     onSettingsClick: () -> Unit,
-    viewModel: NotesViewModel = viewModel(factory = NotesViewModel.Factory)
+    viewModel: NotesViewModel = hiltViewModel()
 ) {
     val notes by viewModel.notes.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()

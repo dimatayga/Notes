@@ -19,9 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.notes.NoteApplication
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil.compose.AsyncImage
 import kotlinx.coroutines.flow.collectLatest
 import java.text.SimpleDateFormat
@@ -31,17 +29,10 @@ import java.util.*
 @Composable
 fun AddEditNoteScreen(
     onSaveNote: () -> Unit,
-    noteId: Int,
-    repository: com.example.notes.domain.repository.NoteRepository
+    viewModel: AddEditNoteViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    val viewModel: AddEditNoteViewModel = viewModel(
-        factory = AddEditNoteViewModel.provideFactory(
-            repository = repository,
-            application = context.applicationContext as NoteApplication,
-            savedStateHandle = SavedStateHandle(mapOf("noteId" to noteId))
-        )
-    )
+    val noteId = viewModel.currentNoteId ?: -1
 
     val titleState = viewModel.noteTitle.value
     val contentState = viewModel.noteContent.value

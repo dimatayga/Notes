@@ -1,20 +1,20 @@
 package com.example.notes.presentation.notes
 
+import android.app.Application
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
-import com.example.notes.NoteApplication
 import com.example.notes.domain.model.Note
 import com.example.notes.domain.repository.NoteRepository
 import com.example.notes.util.ReminderScheduler
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class NotesViewModel(
+@HiltViewModel
+class NotesViewModel @Inject constructor(
     private val repository: NoteRepository,
-    private val application: NoteApplication
+    private val application: Application
 ) : ViewModel() {
 
     private val _searchQuery = MutableStateFlow("")
@@ -74,18 +74,6 @@ class NotesViewModel(
                 ReminderScheduler.cancel(application, note)
             }
             repository.deleteAllNotes()
-        }
-    }
-
-    companion object {
-        val Factory: ViewModelProvider.Factory = viewModelFactory {
-            initializer {
-                val application =
-                    (this
-                        [ViewModelProvider.AndroidViewModelFactory
-                        .APPLICATION_KEY] as NoteApplication)
-                NotesViewModel(application.repository, application)
-            }
         }
     }
 }

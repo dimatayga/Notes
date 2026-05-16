@@ -20,13 +20,19 @@ import com.example.notes.ui.theme.NotesTheme
 import com.example.notes.ui.util.Screen
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import com.example.notes.data.preferences.PreferencesManager
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var preferencesManager: PreferencesManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        val repository = (application as NoteApplication).repository
-        val preferencesManager = (application as NoteApplication).preferencesManager
         setContent {
             val isDarkMode by preferencesManager.isDarkMode.collectAsState(initial = null)
 
@@ -71,13 +77,10 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         ) {
-                            val noteId = it.arguments?.getInt("noteId") ?: -1
                             AddEditNoteScreen(
                                 onSaveNote = {
                                     navController.navigateUp()
-                                },
-                                noteId = noteId,
-                                repository = repository
+                                }
                             )
                         }
                         composable(route = Screen.SettingsScreen.route) {
